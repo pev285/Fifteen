@@ -8,12 +8,17 @@ namespace pe9.Fifteen.GameElements
 {
     public class Board : MonoBehaviour
     {
+        private const float ShuffleMoveDuration = 0.3f;
+
         public Action Updated;
 
         public Transform Transform { get; private set; }
+        public bool IsBusy { get; private set; } = false;
 
         [SerializeField]
         private Transform Background;
+
+        private readonly Vector2Int[] Directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         private Piece[] Cells;
         private PieceFactory PieceFactory;
@@ -21,7 +26,6 @@ namespace pe9.Fifteen.GameElements
         private int Width;
         private int Height;
 
-        private bool IsBusy = false;
 
         private void Awake()
         {
@@ -67,9 +71,44 @@ namespace pe9.Fifteen.GameElements
             Cells = null;
         }
 
-        public async UniTask Shuffle()
-        {
 
+        public async UniTask Shuffle(int steps)
+        {
+            if (IsBusy)
+                throw new InvalidOperationException("Can't shuffle when board is busy");
+
+            int counter = 0;
+            var emptyPosition = EmptyPosition();
+            var previousEmptyPosition = emptyPosition;
+
+            while(counter < steps)
+            {
+                int dirIndex = UnityEngine.Random.Range(0, Directions.Length);
+                var direction = Directions[dirIndex];
+
+                var sourcePosition = emptyPosition + direction;
+                Debug.Log($"{direction}: {sourcePosition} -> {emptyPosition}");
+                
+                if (sourcePosition != previousEmptyPosition && IsInBoard(sourcePosition))
+                {
+                    await MovePiece(sourcePosition, emptyPosition, ShuffleMoveDuration);
+
+                    previousEmptyPosition = emptyPosition;
+                    emptyPosition = sourcePosition;
+
+                    counter++;
+                }
+            }
+        }
+
+        public Vector2Int EmptyPosition()
+        {
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                    if (Cells[CellIndex(x, y)] == null)
+                        return new Vector2Int(x, y);
+
+            throw new Exception("No empty cell in the board!");
         }
 
         private void UpdateBackground(int width, int height)
@@ -129,7 +168,7 @@ namespace pe9.Fifteen.GameElements
             IsBusy = false;
         }
 
-        private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition)
+        private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition, float duration = 0)
         {
             var index = CellIndex(position.x, position.y);
             var targetIndex = CellIndex(targetPosition.x, targetPosition.y);
@@ -137,36 +176,29 @@ namespace pe9.Fifteen.GameElements
             Cells[targetIndex] = Cells[index];
             Cells[index] = null;
 
-            await Cells[targetIndex].MovePosition(targetPosition);
+            if (duration == 0)
+                await Cells[targetIndex].MovePosition(targetPosition);
+            else
+                await Cells[targetIndex].MovePosition(targetPosition, duration);
         }
 
         private bool FindEmptyNeighbor(Vector2Int position, out Vector2Int neighbor)
         {
-            neighbor = new Vector2Int(position.x, position.y + 1);
-            if (IsPositionAvailable(neighbor))
-                return true;
+            foreach(var direction in Directions)
+            {
+                neighbor = position + direction;
+                
+                if (IsPositionAvailable(neighbor))
+                    return true;
+            }
 
-            neighbor = new Vector2Int(position.x, position.y - 1);
-            if (IsPositionAvailable(neighbor))
-                return true;
-
-            neighbor = new Vector2Int(position.x + 1, position.y);
-            if (IsPositionAvailable(neighbor))
-                return true;
-
-            neighbor = new Vector2Int(position.x - 1, position.y);
-            if (IsPositionAvailable(neighbor))
-                return true;
-
+            neighbor = Vector2Int.zero;
             return false;
         }
 
         private bool IsPositionAvailable(Vector2Int position)
         {
-            if (position.x < 0 || position.x >= Width)
-                return false;
-
-            if (position.y < 0 || position.y >= Height)
+            if (IsInBoard(position) == false)
                 return false;
 
             var index = CellIndex(position.x, position.y);
@@ -175,6 +207,17 @@ namespace pe9.Fifteen.GameElements
                 return true;
 
             return false;
+        }
+
+        private bool IsInBoard(Vector2Int position)
+        {
+            if (position.x < 0 || position.x >= Width)
+                return false;
+
+            if (position.y < 0 || position.y >= Height)
+                return false;
+
+            return true;
         }
     }
 }

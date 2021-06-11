@@ -42,11 +42,11 @@ namespace pe9.Fifteen.UI
         public async UniTask<GameSetup> ShowStartGamePopup()
         {
             StartPopup.gameObject.SetActive(true);
-            Background.DOFade(1, FadeDuration);
+            await TaskHelpers.WaitFor(Background.DOFade(1, FadeDuration));
             
             var setup = await StartPopup.WaitForStartSubmit();
 
-            Background.DOFade(0, FadeDuration);
+            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
             StartPopup.gameObject.SetActive(false);
 
             return setup;

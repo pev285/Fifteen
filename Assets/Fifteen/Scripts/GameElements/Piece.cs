@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using pe9.Fifteen.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace pe9.Fifteen.GameElements
         public async UniTask MovePosition(Vector2 position, float duration = MoveDuration)
         {
             var tween = Transform.DOMove(position, duration);
-            await UniTask.WaitWhile(() => tween.active && tween.IsPlaying());
+            await TaskHelpers.WaitFor(tween);
         }
 
         private void OnMouseDown()
