@@ -8,7 +8,9 @@ namespace pe9.Fifteen.GameElements
 {
     public class Board : MonoBehaviour
     {
-        private const float ShuffleMoveDuration = 0.3f;
+        private const int ShuffleSteps = 10;
+        private const float ShuffleMoveDuration = 0.15f;
+
 
         public Action Updated;
 
@@ -32,18 +34,34 @@ namespace pe9.Fifteen.GameElements
             Transform = transform;    
         }
 
+        //-- TODO: Add Show/Hide animation?? --
+        public async UniTask Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        public async UniTask Hide()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void Lock()
+        {
+            IsBusy = true;
+        }
+
+        public void Unlock()
+        {
+            IsBusy = false;
+        }
+
         public void Initialize(PieceFactory pieceFactory)
         {
             PieceFactory = pieceFactory;
         }
 
-        public async UniTask Recreate(int width, int height)
+        public void Recreate(int width, int height)
         {
-            if (IsBusy)
-                await UniTask.WaitUntil(() => IsBusy == false);
-
-            IsBusy = true;
-
             Width = width;
             Height = height;
 
@@ -51,7 +69,6 @@ namespace pe9.Fifteen.GameElements
             UpdateBackground(width, height);
 
             CreatePieces(width, height);
-            IsBusy = false;
         }
 
         public void Clear()
@@ -64,7 +81,7 @@ namespace pe9.Fifteen.GameElements
                 if (Cells[i] == null)
                     continue;
 
-                Cells[i].Clicked -= Piece_Clicked;
+                Cells[i].Clicked -= TryMovePiece;
                 PieceFactory.GiveBack(Cells[i]);
             }
 
@@ -72,22 +89,18 @@ namespace pe9.Fifteen.GameElements
         }
 
 
-        public async UniTask Shuffle(int steps)
+        public async UniTask Shuffle()
         {
-            if (IsBusy)
-                throw new InvalidOperationException("Can't shuffle when board is busy");
-
             int counter = 0;
             var emptyPosition = EmptyPosition();
             var previousEmptyPosition = emptyPosition;
 
-            while(counter < steps)
+            while(counter < ShuffleSteps)
             {
                 int dirIndex = UnityEngine.Random.Range(0, Directions.Length);
                 var direction = Directions[dirIndex];
 
                 var sourcePosition = emptyPosition + direction;
-                Debug.Log($"{direction}: {sourcePosition} -> {emptyPosition}");
                 
                 if (sourcePosition != previousEmptyPosition && IsInBoard(sourcePosition))
                 {
@@ -127,17 +140,36 @@ namespace pe9.Fifteen.GameElements
                 {
                     if (y == 0 && x == width - 1)
                         continue;
+                    
                     int index = CellIndex(x, y);
                     int label = CellLabel(x, y);
 
                     var piece = PieceFactory.GetPiece();
                     Cells[index] = piece;
 
-                    piece.SetLabel(label.ToString());
+                    piece.SetLabel(label);
                     piece.SetPosition(new Vector2(x, y));
 
-                    piece.Clicked += Piece_Clicked;
+                    piece.Clicked += TryMovePiece;
                 }
+        }
+
+        public bool IsCorrectArrangement()
+        {
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                {
+                    int index = CellIndex(x, y);
+                    int label = CellLabel(x, y);
+
+                    if (Cells[index] == null)
+                        continue;
+
+                    if (Cells[index].LabelNumber != label)
+                        return false;
+                }
+
+            return true;
         }
 
         private int CellLabel(int x, int y)
@@ -150,7 +182,7 @@ namespace pe9.Fifteen.GameElements
             return y * Width + x;
         }
 
-        private async void Piece_Clicked(Vector2Int position)
+        private async void TryMovePiece(Vector2Int position)
         {
             if (IsBusy)
                 return;
@@ -160,12 +192,15 @@ namespace pe9.Fifteen.GameElements
             Vector2Int targetPosition;
 
             if (FindEmptyNeighbor(position, out targetPosition) == false)
+            {
+                IsBusy = false;
                 return;
+            }
 
             await MovePiece(position, targetPosition);
-            Updated?.Invoke();
-
             IsBusy = false;
+
+            Updated?.Invoke();
         }
 
         private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition, float duration = 0)

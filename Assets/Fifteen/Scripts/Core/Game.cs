@@ -34,12 +34,16 @@ namespace pe9.Fifteen.Core
 
         private async UniTask GameCycle()
         {
-            var setup = await UIHub.ShowStartGamePopup();
+            await UIHub.ShowStartGamePopup();
+            var setup = await UIHub.GetGameSetup();
 
             SetupCamera(setup);
-            Level.StartNew(setup);
-            
+            Level.SetupLevel(setup);
 
+            await UIHub.HideStartGamePopup();
+            await Level.StartNew();
+
+            Debug.Log("Solved");
         }
 
         private void SetupCamera(GameSetup setup)

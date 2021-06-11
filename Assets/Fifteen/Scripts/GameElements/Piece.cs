@@ -12,29 +12,37 @@ namespace pe9.Fifteen.GameElements
     {
         public event Action<Vector2Int> Clicked;
 
-        private const float MoveDuration = 2.0f;
+        private const float MoveDuration = 0.25f;
 
         [SerializeField]
         private TextMesh Label;
 
-        private GameObject GO;
-        private Transform Transform;
-
-        private void Awake()
+        private Transform _transform;
+        private Transform Transform
         {
-            GO = gameObject;
-            Transform = transform;
+            get
+            {
+                if (_transform == null)
+                    _transform = transform;
+
+                return _transform;
+            }
         }
 
-        public void SetLabel(string label)
+        public int LabelNumber { get; private set; }
+
+        public void SetLabel(int label)
         {
-            GO.name = label;
-            Label.text = label;
+            LabelNumber = label;
+            var labelStr = label.ToString();
+
+            gameObject.name = labelStr;
+            Label.text = labelStr;
         }
 
         public void SetActive(bool on)
         {
-            GO.SetActive(on);
+            gameObject.SetActive(on);
         }
 
         public void SetPosition(Vector2 position)
@@ -52,7 +60,6 @@ namespace pe9.Fifteen.GameElements
         {
             Vector2Int boardPosition = new Vector2Int((int)Transform.position.x, (int)Transform.position.y);
             Clicked?.Invoke(boardPosition);
-            Debug.Log($"{Label.text} clicked at {boardPosition}");
         }
     }
 }

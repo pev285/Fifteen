@@ -3,6 +3,7 @@ using DG.Tweening;
 using pe9.Fifteen.Common;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +11,7 @@ namespace pe9.Fifteen.UI
 {
     public class UIHub : MonoBehaviour
     {
-        private const float FadeDuration = 3.0f;
+        private const float FadeDuration = 1.0f;
 
         [SerializeField]
         private CanvasGroup Background;
@@ -39,17 +40,22 @@ namespace pe9.Fifteen.UI
         }
 
 
-        public async UniTask<GameSetup> ShowStartGamePopup()
+        public async UniTask<GameSetup> GetGameSetup()
+        {
+            var setup = await StartPopup.WaitForStartSubmit();
+            return setup;
+        }
+
+        public async UniTask HideStartGamePopup()
+        {
+            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
+            StartPopup.gameObject.SetActive(false);
+        }
+
+        public async UniTask ShowStartGamePopup()
         {
             StartPopup.gameObject.SetActive(true);
             await TaskHelpers.WaitFor(Background.DOFade(1, FadeDuration));
-            
-            var setup = await StartPopup.WaitForStartSubmit();
-
-            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
-            StartPopup.gameObject.SetActive(false);
-
-            return setup;
         }
     }
 }

@@ -8,8 +8,6 @@ namespace pe9.Fifteen.GameElements
 {
     public class Level
     {
-        private const int ShuffleSteps = 10;
-
         private Board Board;
 
         private bool PuzzleCompleted;
@@ -20,10 +18,27 @@ namespace pe9.Fifteen.GameElements
             Board.Updated += CheckGameEnd;
         }
 
-        public async void StartNew(GameSetup setup)
+        public async UniTask ShowBoard()
         {
-            await Board.Recreate(setup.BoardWidth, setup.BoardHeight);
-            await Board.Shuffle(ShuffleSteps);
+            await Board.Show();
+        }
+
+        public async UniTask HideBoard()
+        {
+            await Board.Hide();
+        }
+
+
+        public void SetupLevel(GameSetup setup)
+        {
+            Board.Lock();
+            Board.Recreate(setup.BoardWidth, setup.BoardHeight);
+        }
+
+        public async UniTask StartNew()
+        {
+            await Board.Shuffle();
+            Board.Unlock();
 
             PuzzleCompleted = false;
             await UniTask.WaitUntil(() => PuzzleCompleted == true);
@@ -31,7 +46,11 @@ namespace pe9.Fifteen.GameElements
 
         private void CheckGameEnd()
         {
+            if (Board.IsCorrectArrangement() == false)
+                return;
 
+            Board.Lock();
+            PuzzleCompleted = true;
         }
     }
 }
