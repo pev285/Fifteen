@@ -20,7 +20,7 @@ namespace pe9.Fifteen.UI
         private StartPopup StartPopup;
 
         [SerializeField]
-        private WinPopup WinPopup;
+        private ConfirmationPopup WinPopup;
 
         [SerializeField]
         private GameplayUI GameplayUI;
@@ -48,14 +48,32 @@ namespace pe9.Fifteen.UI
 
         public async UniTask HideStartGamePopup()
         {
-            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
-            StartPopup.gameObject.SetActive(false);
+            await HidePopup(StartPopup.gameObject);
         }
 
         public async UniTask ShowStartGamePopup()
         {
-            StartPopup.gameObject.SetActive(true);
+            await ShowPopup(StartPopup.gameObject);
+        }
+
+        public async UniTask ShowWinPopup()
+        {
+            await ShowPopup(WinPopup.gameObject);
+
+            await WinPopup.WaitForConfirmation();
+            await HidePopup(WinPopup.gameObject);
+        }
+
+        private async UniTask ShowPopup(GameObject popup)
+        {
+            popup.gameObject.SetActive(true);
             await TaskHelpers.WaitFor(Background.DOFade(1, FadeDuration));
+        }
+
+        private async UniTask HidePopup(GameObject popup)
+        {
+            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
+            popup.gameObject.SetActive(false);
         }
     }
 }

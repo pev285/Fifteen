@@ -4,6 +4,7 @@ using pe9.Fifteen.GameElements;
 using pe9.Fifteen.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace pe9.Fifteen.Core
@@ -16,6 +17,8 @@ namespace pe9.Fifteen.Core
         private Transform CameraTransform;
 
         private Level Level;
+
+        private bool Exit = false;
 
         public void Initialize(Camera camera, UIHub ui, Level level)
         {
@@ -34,6 +37,19 @@ namespace pe9.Fifteen.Core
 
         private async UniTask GameCycle()
         {
+            while (!Exit)
+            {
+                await SetupNewSession();
+
+                await Level.StartNew();
+
+                Debug.Log("Solved");
+                await UIHub.ShowWinPopup();
+            }
+        }
+
+        private async Task SetupNewSession()
+        {
             await UIHub.ShowStartGamePopup();
             var setup = await UIHub.GetGameSetup();
 
@@ -41,9 +57,6 @@ namespace pe9.Fifteen.Core
             Level.SetupLevel(setup);
 
             await UIHub.HideStartGamePopup();
-            await Level.StartNew();
-
-            Debug.Log("Solved");
         }
 
         private void SetupCamera(GameSetup setup)
