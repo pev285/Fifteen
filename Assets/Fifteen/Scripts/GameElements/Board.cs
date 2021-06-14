@@ -8,7 +8,7 @@ namespace pe9.Fifteen.GameElements
 {
     public class Board : MonoBehaviour
     {
-        private const int ShuffleSteps = 10;
+        private const int ShuffleSteps = 3;
         private const float ShuffleMoveDuration = 0.15f;
 
 
@@ -35,15 +35,15 @@ namespace pe9.Fifteen.GameElements
         }
 
         //-- TODO: Add Show/Hide animation?? --
-        public async UniTask Show()
-        {
-            gameObject.SetActive(true);
-        }
+        //public async UniTask Show()
+        //{
+        //    gameObject.SetActive(true);
+        //}
 
-        public async UniTask Hide()
-        {
-            gameObject.SetActive(false);
-        }
+        //public async UniTask Hide()
+        //{
+        //    gameObject.SetActive(false);
+        //}
 
         public void Lock()
         {
@@ -60,48 +60,79 @@ namespace pe9.Fifteen.GameElements
             PieceFactory = pieceFactory;
         }
 
-        public void Recreate(int width, int height)
+        public int[] GetBoardState()
         {
-            Width = width;
-            Height = height;
+            var data = new int[Width * Height];
 
-            Clear();
-            UpdateBackground(width, height);
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                {
+                    int index = InternalIndex(x, y);
+                    int externalIndex = ExternalIndex(x, y);
 
-            CreatePieces(width, height);
+                    int value;
+
+                    if (Cells[index] == null)
+                        value = -1;
+                    else
+                        value = Cells[index].LabelNumber;
+
+                    data[externalIndex] = value;
+                }
+
+            return data;
         }
 
-        public void Clear()
+        private void SetBoardState(int[] data)
         {
-            if (Cells == null)
-                return;
+            if (data.Length != Width * Height)
+                throw new ArgumentException($"Incorrect board data array length");
 
-            for (int i = 0; i < Cells.Length; i++) 
-            {
-                if (Cells[i] == null)
-                    continue;
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                {
+                    int index = InternalIndex(x, y);
+                    int externalIndex = ExternalIndex(x, y);
 
-                Cells[i].Clicked -= TryMovePiece;
-                PieceFactory.GiveBack(Cells[i]);
-            }
+                    int value = data[externalIndex];
 
-            Cells = null;
+                    if (value < 0)
+                    {
+                        ReturnPiece(Cells[index]);
+                        Cells[index] = null;
+                    }
+                    else
+                    {
+                        Cells[index].SetLabel(value);
+                    }
+                }
         }
 
+        public void Restore(int width, int height, int[] data)
+        {
+            CreateDefaultBoard(width, height);
+            SetBoardState(data);
+        }
+
+        public void CreateNew(int width, int height)
+        {
+            CreateDefaultBoard(width, height);
+            SetCorrectArrangement();
+        }
 
         public async UniTask Shuffle()
         {
             int counter = 0;
-            var emptyPosition = EmptyPosition();
+            var emptyPosition = FindEmptyPosition();
             var previousEmptyPosition = emptyPosition;
 
-            while(counter < ShuffleSteps)
+            while (counter < ShuffleSteps)
             {
                 int dirIndex = UnityEngine.Random.Range(0, Directions.Length);
                 var direction = Directions[dirIndex];
 
                 var sourcePosition = emptyPosition + direction;
-                
+
                 if (sourcePosition != previousEmptyPosition && IsInBoard(sourcePosition))
                 {
                     await MovePiece(sourcePosition, emptyPosition, ShuffleMoveDuration);
@@ -114,11 +145,80 @@ namespace pe9.Fifteen.GameElements
             }
         }
 
-        public Vector2Int EmptyPosition()
+        public bool IsCorrectArrangement()
         {
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
-                    if (Cells[CellIndex(x, y)] == null)
+                {
+                    int index = InternalIndex(x, y);
+                    int label = ExternalIndex(x, y);
+
+                    if (Cells[index] == null)
+                        continue;
+
+                    if (Cells[index].LabelNumber != label)
+                        return false;
+                }
+
+            return true;
+        }
+
+
+        /*
+         * Returns the natural cell value for the game - 
+         *      top most table line have numbers from 1 to Width,  
+         *      the second line have numbers from Width+1 to 2*Width, etc
+         * x is indexed from left to right
+         * y is indexed form bottom to top
+         */
+        private int ExternalIndex(int x, int y)
+        {
+            return (Height - y - 1) * Width + x + 1;
+        }
+
+        /*
+         * Retruns: Position of an element in the Cells array
+         * x is indexed from left to right
+         * y is indexed form bottom to top
+         */
+        private int InternalIndex(int x, int y)
+        {
+            return y * Width + x;
+        }
+
+        private void Clear()
+        {
+            if (Cells == null)
+                return;
+
+            for (int i = 0; i < Cells.Length; i++)
+            {
+                if (Cells[i] == null)
+                    continue;
+
+                ReturnPiece(Cells[i]);
+            }
+
+            Cells = null;
+        }
+
+        private void CreateDefaultBoard(int width, int height)
+        {
+            Width = width;
+            Height = height;
+
+            Clear();
+            UpdateBackground(width, height);
+
+            CreatePieces(width, height);
+        }
+
+
+        private Vector2Int FindEmptyPosition()
+        {
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                    if (Cells[InternalIndex(x, y)] == null)
                         return new Vector2Int(x, y);
 
             throw new Exception("No empty cell in the board!");
@@ -137,49 +237,44 @@ namespace pe9.Fifteen.GameElements
 
             for (int x = 0; x < width; x++)
                 for (int y = 0; y < height; y++)
-                {
-                    if (y == 0 && x == width - 1)
-                        continue;
-                    
-                    int index = CellIndex(x, y);
-                    int label = CellLabel(x, y);
-
-                    var piece = PieceFactory.GetPiece();
-                    Cells[index] = piece;
-
-                    piece.SetLabel(label);
-                    piece.SetPosition(new Vector2(x, y));
-
-                    piece.Clicked += TryMovePiece;
-                }
+                    CreatePiece(x, y);
         }
 
-        public bool IsCorrectArrangement()
+        private void ReturnPiece(Piece piece)
+        {
+            piece.Clicked -= TryMovePiece;
+            PieceFactory.GiveBack(piece);
+        }
+
+        private void CreatePiece(int x, int y)
+        {
+            int index = InternalIndex(x, y);
+            var piece = PieceFactory.GetPiece();
+
+            Cells[index] = piece;
+
+            piece.SetPosition(new Vector2(x, y));
+            piece.Clicked += TryMovePiece;
+        }
+
+        private void SetCorrectArrangement()
         {
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                 {
-                    int index = CellIndex(x, y);
-                    int label = CellLabel(x, y);
+                    int index = InternalIndex(x, y);
 
-                    if (Cells[index] == null)
+                    if (y == 0 && x == Width - 1)
+                    {
+                        ReturnPiece(Cells[index]);
+                        Cells[index] = null;
+
                         continue;
+                    }
 
-                    if (Cells[index].LabelNumber != label)
-                        return false;
+                    int label = ExternalIndex(x, y);
+                    Cells[index].SetLabel(label);
                 }
-
-            return true;
-        }
-
-        private int CellLabel(int x, int y)
-        {
-            return (Height - y - 1) * Width + x + 1;
-        }
-
-        private int CellIndex(int x, int y)
-        {
-            return y * Width + x;
         }
 
         private async void TryMovePiece(Vector2Int position)
@@ -205,8 +300,8 @@ namespace pe9.Fifteen.GameElements
 
         private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition, float duration = 0)
         {
-            var index = CellIndex(position.x, position.y);
-            var targetIndex = CellIndex(targetPosition.x, targetPosition.y);
+            var index = InternalIndex(position.x, position.y);
+            var targetIndex = InternalIndex(targetPosition.x, targetPosition.y);
 
             Cells[targetIndex] = Cells[index];
             Cells[index] = null;
@@ -236,7 +331,7 @@ namespace pe9.Fifteen.GameElements
             if (IsInBoard(position) == false)
                 return false;
 
-            var index = CellIndex(position.x, position.y);
+            var index = InternalIndex(position.x, position.y);
 
             if (Cells[index] == null)
                 return true;

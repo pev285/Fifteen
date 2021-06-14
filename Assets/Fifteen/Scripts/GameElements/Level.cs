@@ -18,21 +18,27 @@ namespace pe9.Fifteen.GameElements
             Board.Updated += CheckGameEnd;
         }
 
-        public async UniTask ShowBoard()
-        {
-            await Board.Show();
-        }
+        //public async UniTask ShowBoard()
+        //{
+        //    await Board.Show();
+        //}
 
-        public async UniTask HideBoard()
-        {
-            await Board.Hide();
-        }
+        //public async UniTask HideBoard()
+        //{
+        //    await Board.Hide();
+        //}
 
 
         public void SetupLevel(GameSetup setup)
         {
             Board.Lock();
-            Board.Recreate(setup.BoardWidth, setup.BoardHeight);
+            Board.CreateNew(setup.BoardWidth, setup.BoardHeight);
+        }
+
+        public void RestoreLevel(GameSetup setup, int[] data)
+        {
+            Board.Lock();
+            Board.Restore(setup.BoardWidth, setup.BoardHeight, data);
         }
 
         public async UniTask StartNew()

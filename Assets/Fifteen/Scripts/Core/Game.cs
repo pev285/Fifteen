@@ -17,6 +17,7 @@ namespace pe9.Fifteen.Core
         private Transform CameraTransform;
 
         private Level Level;
+        private IStorage Storage;
 
         private bool Exit = false;
 
@@ -28,6 +29,7 @@ namespace pe9.Fifteen.Core
             Camera = camera;
             CameraTransform = Camera.GetComponent<Transform>();
 
+            Storage = new PlayerPrefsStorage();
         }
 
         public  async void StartGame()
@@ -43,20 +45,26 @@ namespace pe9.Fifteen.Core
 
                 await Level.StartNew();
 
-                Debug.Log("Solved");
-                await UIHub.ShowWinPopup();
+                await UIHub.Win();
             }
         }
 
         private async Task SetupNewSession()
         {
-            await UIHub.ShowStartGamePopup();
-            var setup = await UIHub.GetGameSetup();
+            var setup = await UIHub.SetupRequest();
 
             SetupCamera(setup);
-            Level.SetupLevel(setup);
 
-            await UIHub.HideStartGamePopup();
+            
+            
+            Level.SetupLevel(setup);
+            //-----
+            //Level.RestoreLevel(setup, data);
+            //----
+
+
+
+            await UIHub.Gameplay();
         }
 
         private void SetupCamera(GameSetup setup)
