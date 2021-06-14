@@ -1,21 +1,49 @@
-﻿using pe9.Fifteen.GameElements;
+﻿using pe9.Fifteen.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace pe9.Fifteen.Core 
+namespace pe9.Fifteen.Core
 {
     public class PlayerPrefsStorage : IStorage
     {
         private const char Separator = '#';
         private const string BoardKey = "Board";
 
+        private const string WidthKey = "Width";
+        private const string HeightKey = "Height";
 
-        //public void SaveSetup() { }
-        //public bool TryRestoreSetup() { }
+        public void ClearSavedData()
+        {
+            PlayerPrefs.DeleteKey(BoardKey);
+            PlayerPrefs.DeleteKey(WidthKey);
+            PlayerPrefs.DeleteKey(HeightKey);
+        }
 
-        public void SaveArrray(int[] data)
+        public void SaveSetup(GameSetup setup)
+        {
+            PlayerPrefs.SetInt(WidthKey, setup.BoardWidth);
+            PlayerPrefs.SetInt(HeightKey, setup.BoardHeight);
+            PlayerPrefs.Save();
+        }
+
+        public bool TryRestoreSetup(out GameSetup setup)
+        {
+            var width = PlayerPrefs.GetInt(WidthKey, -1);
+            var height = PlayerPrefs.GetInt(HeightKey, -1);
+
+            if (width <= 0 || height <= 0)
+            {
+                setup = default(GameSetup);
+                return false;
+            }
+
+            setup = new GameSetup(width, height);
+            return true;
+        }
+
+        public void SaveBoardArray(int[] data)
         {
             var boardString = string.Join(Separator.ToString(), data);
 
@@ -23,7 +51,7 @@ namespace pe9.Fifteen.Core
             PlayerPrefs.Save();
         }
 
-        public bool TryRestoreArray(out int[] data, int len)
+        public bool TryRestoreBoardArray(out int[] data, int len)
         {
             data = Array.Empty<int>();
 
@@ -46,7 +74,7 @@ namespace pe9.Fifteen.Core
             }
 
             data = result;
-            return false;
+            return true;
         }
     }
 }

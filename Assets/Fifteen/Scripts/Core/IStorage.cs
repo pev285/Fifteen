@@ -1,4 +1,4 @@
-﻿using pe9.Fifteen.GameElements;
+﻿using pe9.Fifteen.Common;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +7,12 @@ namespace pe9.Fifteen.Core
 {
     public interface IStorage
     {
-        void SaveArrray(int[] board);
-        bool TryRestoreArray(out int[] board, int len);
+        void ClearSavedData();
+
+        void SaveSetup(GameSetup setup);
+        bool TryRestoreSetup(out GameSetup setup);
+
+        void SaveBoardArray(int[] board);
+        bool TryRestoreBoardArray(out int[] board, int len);
     }
 }

@@ -68,7 +68,7 @@ namespace pe9.Fifteen.GameElements
                 for (int y = 0; y < Height; y++)
                 {
                     int index = InternalIndex(x, y);
-                    int externalIndex = ExternalIndex(x, y);
+                    int externalIndex = ExternalValue(x, y) - 1;
 
                     int value;
 
@@ -92,7 +92,7 @@ namespace pe9.Fifteen.GameElements
                 for (int y = 0; y < Height; y++)
                 {
                     int index = InternalIndex(x, y);
-                    int externalIndex = ExternalIndex(x, y);
+                    int externalIndex = ExternalValue(x, y) - 1;
 
                     int value = data[externalIndex];
 
@@ -151,7 +151,7 @@ namespace pe9.Fifteen.GameElements
                 for (int y = 0; y < Height; y++)
                 {
                     int index = InternalIndex(x, y);
-                    int label = ExternalIndex(x, y);
+                    int label = ExternalValue(x, y);
 
                     if (Cells[index] == null)
                         continue;
@@ -171,7 +171,7 @@ namespace pe9.Fifteen.GameElements
          * x is indexed from left to right
          * y is indexed form bottom to top
          */
-        private int ExternalIndex(int x, int y)
+        private int ExternalValue(int x, int y)
         {
             return (Height - y - 1) * Width + x + 1;
         }
@@ -272,7 +272,7 @@ namespace pe9.Fifteen.GameElements
                         continue;
                     }
 
-                    int label = ExternalIndex(x, y);
+                    int label = ExternalValue(x, y);
                     Cells[index].SetLabel(label);
                 }
         }

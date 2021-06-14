@@ -11,6 +11,13 @@ namespace pe9.Fifteen.Core
 {
     public class Game : MonoBehaviour
     {
+        private enum GameState
+        {
+            Dialogs,
+            Gameplay,
+            Exit
+        }
+
         private UIHub UIHub;
 
         private Camera Camera;
@@ -19,10 +26,12 @@ namespace pe9.Fifteen.Core
         private Level Level;
         private IStorage Storage;
 
-        private bool Exit = false;
+        private GameState State;
 
         public void Initialize(Camera camera, UIHub ui, Level level)
         {
+            State = GameState.Dialogs;
+
             UIHub = ui;
             Level = level;
 
@@ -37,13 +46,31 @@ namespace pe9.Fifteen.Core
             await GameCycle();
         }
 
+        private void OnApplicationFocus(bool focus)
+        {
+            Debug.Log($"application focus = {focus}");
+
+            if (focus == false && State == GameState.Gameplay)
+                SaveGame();
+        }
+
+        private void SaveGame()
+        {
+            Storage.SaveSetup(Level.GameSetup);
+            Storage.SaveBoardArray(Level.Board.GetBoardState());
+        }
+
         private async UniTask GameCycle()
         {
-            while (!Exit)
+            while (State != GameState.Exit)
             {
                 await SetupNewSession();
 
-                await Level.StartNew();
+                State = GameState.Gameplay;
+                await Level.StartPlaying();
+
+                State = GameState.Dialogs;
+                Storage.ClearSavedData();
 
                 await UIHub.Win();
             }
@@ -51,20 +78,31 @@ namespace pe9.Fifteen.Core
 
         private async Task SetupNewSession()
         {
-            var setup = await UIHub.SetupRequest();
+            GameSetup setup;
+            int[] boardData;
 
-            SetupCamera(setup);
+            bool gameRestored = false;
 
-            
-            
-            Level.SetupLevel(setup);
-            //-----
-            //Level.RestoreLevel(setup, data);
-            //----
+            if (Storage.TryRestoreSetup(out setup) 
+                && Storage.TryRestoreBoardArray(out boardData, setup.BoardWidth * setup.BoardHeight))
+            {
+                SetupCamera(setup);
+                Level.RestoreLevel(setup, boardData);
 
+                gameRestored = true;
+            }
+            else
+            {
+                setup = await UIHub.SetupRequest();
 
+                SetupCamera(setup);
+                Level.SetupLevel(setup);
+            }
 
             await UIHub.Gameplay();
+
+            if (gameRestored == false)
+                await Level.ShuffleBoard();
         }
 
         private void SetupCamera(GameSetup setup)
