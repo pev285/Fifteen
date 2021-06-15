@@ -20,6 +20,8 @@ namespace pe9.Fifteen.UI
             Win,
         }
 
+        public Action GameAbortRequested;
+
         [SerializeField]
         private StartPopup StartPopup;
 
@@ -51,6 +53,8 @@ namespace pe9.Fifteen.UI
 
         private void Start()
         {
+            GameplayUI.RestartButtonClicked += () => GameAbortRequested?.Invoke();
+
             HideAll();
             State = UIState.WithoutUI;
         }

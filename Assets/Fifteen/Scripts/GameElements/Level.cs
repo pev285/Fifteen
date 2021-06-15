@@ -8,10 +8,17 @@ namespace pe9.Fifteen.GameElements
 {
     public class Level
     {
+        public enum LevelState
+        {
+            Playing,
+            Completed,
+            Aborted,
+        }
+
         public Board Board { get; private set; }
         public GameSetup GameSetup { get; private set; }
 
-        private bool PuzzleCompleted;
+        public LevelState State { get; private set; }
 
         public Level(Board board)
         {
@@ -44,8 +51,13 @@ namespace pe9.Fifteen.GameElements
         {
             Board.Unlock();
 
-            PuzzleCompleted = false;
-            await UniTask.WaitUntil(() => PuzzleCompleted == true);
+            State = LevelState.Playing;
+            await UniTask.WaitWhile(() => State == LevelState.Playing);
+        }
+
+        public void Abort()
+        {
+            State = LevelState.Aborted;
         }
 
         private void CheckGameEnd()
@@ -54,7 +66,7 @@ namespace pe9.Fifteen.GameElements
                 return;
 
             Board.Lock();
-            PuzzleCompleted = true;
+            State = LevelState.Completed;
         }
     }
 }

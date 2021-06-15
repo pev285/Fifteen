@@ -33,6 +33,8 @@ namespace pe9.Fifteen.Core
             State = GameState.Dialogs;
 
             UIHub = ui;
+            UIHub.GameAbortRequested += AbortGame;
+
             Level = level;
 
             Camera = camera;
@@ -68,8 +70,11 @@ namespace pe9.Fifteen.Core
                 State = GameState.Gameplay;
                 await Level.StartPlaying();
 
-                State = GameState.Dialogs;
                 Storage.ClearSavedData();
+                State = GameState.Dialogs;
+
+                if (Level.State == Level.LevelState.Aborted)
+                    continue;
 
                 await UIHub.Win();
             }
@@ -115,6 +120,11 @@ namespace pe9.Fifteen.Core
             Camera.orthographicSize = cameraSize;
 
             //-- TODO: support very high boards ??? ---
+        }
+
+        private void AbortGame()
+        {
+            Level.Abort();
         }
     }
 }
