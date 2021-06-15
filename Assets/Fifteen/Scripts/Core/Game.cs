@@ -44,7 +44,6 @@ namespace pe9.Fifteen.Core
         public  async void StartGame()
         {
             //Storage.ClearSavedData();
-
             await GameCycle();
         }
 

@@ -14,11 +14,11 @@ namespace pe9.Fifteen.Common
         public static int[][] SetupPresets { get => _setupPresets; }
 
         private static int[][] _setupPresets = {
-            new int[] { 3, 3, 1 },
-            new int[] { 4, 4, 2 },
-            new int[] { 5, 5, 3 },
-            new int[] { 3, 5, 3 },
-            new int[] { 5, 4, 3 },
+            new int[] { 3, 3, 20 },
+            new int[] { 4, 4, 30 },
+            new int[] { 5, 5, 50 },
+            new int[] { 3, 5, 40 },
+            new int[] { 5, 4, 50 },
         };
     }
 }
