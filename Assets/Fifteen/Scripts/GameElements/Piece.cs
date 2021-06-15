@@ -12,8 +12,6 @@ namespace pe9.Fifteen.GameElements
     {
         public event Action<Vector2Int> Clicked;
 
-        private const float MoveDuration = 0.25f;
-
         [SerializeField]
         private TextMesh Label;
 
@@ -50,7 +48,7 @@ namespace pe9.Fifteen.GameElements
             Transform.position = position;
         }
 
-        public async UniTask MovePosition(Vector2 position, float duration = MoveDuration)
+        public async UniTask MovePosition(Vector2 position, float duration)
         {
             var tween = Transform.DOMove(position, duration);
             await TaskHelpers.WaitFor(tween);

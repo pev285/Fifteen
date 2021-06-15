@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using pe9.Fifteen.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,10 +9,6 @@ namespace pe9.Fifteen.GameElements
 {
     public class Board : MonoBehaviour
     {
-        private const int ShuffleSteps = 3;
-        private const float ShuffleMoveDuration = 0.15f;
-
-
         public Action Updated;
 
         public Transform Transform { get; private set; }
@@ -31,19 +28,8 @@ namespace pe9.Fifteen.GameElements
 
         private void Awake()
         {
-            Transform = transform;    
+            Transform = transform;
         }
-
-        //-- TODO: Add Show/Hide animation?? --
-        //public async UniTask Show()
-        //{
-        //    gameObject.SetActive(true);
-        //}
-
-        //public async UniTask Hide()
-        //{
-        //    gameObject.SetActive(false);
-        //}
 
         public void Lock()
         {
@@ -58,6 +44,18 @@ namespace pe9.Fifteen.GameElements
         public void Initialize(PieceFactory pieceFactory)
         {
             PieceFactory = pieceFactory;
+        }
+
+        public void CreateNew(int width, int height)
+        {
+            CreateDefaultBoard(width, height);
+            SetCorrectArrangement();
+        }
+
+        public void Restore(int width, int height, int[] data)
+        {
+            CreateDefaultBoard(width, height);
+            SetBoardState(data);
         }
 
         public int[] GetBoardState()
@@ -108,25 +106,13 @@ namespace pe9.Fifteen.GameElements
                 }
         }
 
-        public void Restore(int width, int height, int[] data)
-        {
-            CreateDefaultBoard(width, height);
-            SetBoardState(data);
-        }
-
-        public void CreateNew(int width, int height)
-        {
-            CreateDefaultBoard(width, height);
-            SetCorrectArrangement();
-        }
-
         public async UniTask Shuffle()
         {
             int counter = 0;
             var emptyPosition = FindEmptyPosition();
             var previousEmptyPosition = emptyPosition;
 
-            while (counter < ShuffleSteps)
+            while (counter < Configuration.BoardShuffleSteps)
             {
                 int dirIndex = UnityEngine.Random.Range(0, Directions.Length);
                 var direction = Directions[dirIndex];
@@ -135,7 +121,7 @@ namespace pe9.Fifteen.GameElements
 
                 if (sourcePosition != previousEmptyPosition && IsInBoard(sourcePosition))
                 {
-                    await MovePiece(sourcePosition, emptyPosition, ShuffleMoveDuration);
+                    await MovePiece(sourcePosition, emptyPosition, Configuration.ShuffleMoveDuration);
 
                     previousEmptyPosition = emptyPosition;
                     emptyPosition = sourcePosition;
@@ -292,13 +278,13 @@ namespace pe9.Fifteen.GameElements
                 return;
             }
 
-            await MovePiece(position, targetPosition);
+            await MovePiece(position, targetPosition, Configuration.PieceMoveDuration);
             IsBusy = false;
 
             Updated?.Invoke();
         }
 
-        private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition, float duration = 0)
+        private async UniTask MovePiece(Vector2Int position, Vector2Int targetPosition, float duration)
         {
             var index = InternalIndex(position.x, position.y);
             var targetIndex = InternalIndex(targetPosition.x, targetPosition.y);
@@ -306,18 +292,15 @@ namespace pe9.Fifteen.GameElements
             Cells[targetIndex] = Cells[index];
             Cells[index] = null;
 
-            if (duration == 0)
-                await Cells[targetIndex].MovePosition(targetPosition);
-            else
-                await Cells[targetIndex].MovePosition(targetPosition, duration);
+            await Cells[targetIndex].MovePosition(targetPosition, duration);
         }
 
         private bool FindEmptyNeighbor(Vector2Int position, out Vector2Int neighbor)
         {
-            foreach(var direction in Directions)
+            foreach (var direction in Directions)
             {
                 neighbor = position + direction;
-                
+
                 if (IsPositionAvailable(neighbor))
                     return true;
             }

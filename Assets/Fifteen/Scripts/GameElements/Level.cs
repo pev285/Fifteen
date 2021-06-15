@@ -19,16 +19,6 @@ namespace pe9.Fifteen.GameElements
             Board.Updated += CheckGameEnd;
         }
 
-        //public async UniTask ShowBoard()
-        //{
-        //    await Board.Show();
-        //}
-
-        //public async UniTask HideBoard()
-        //{
-        //    await Board.Hide();
-        //}
-
         public void SetupLevel(GameSetup setup)
         {
             GameSetup = setup;

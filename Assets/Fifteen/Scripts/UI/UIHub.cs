@@ -20,8 +20,6 @@ namespace pe9.Fifteen.UI
             Win,
         }
 
-        private const float FadeDuration = 1.0f;
-
         [SerializeField]
         private StartPopup StartPopup;
 
@@ -68,32 +66,22 @@ namespace pe9.Fifteen.UI
             switch (state)
             {
                 case UIState.SetupRequest:
-                    await StartPopup.Show(FadeDuration);
+                    await StartPopup.Show(Configuration.UIFadeDuration);
 
                     if (State == UIState.Win)
-                        WinPopup.Hide(FadeDuration);
-
-
-                    //var t1 = StartPopup.Show(FadeDuration);
-                    //var t2 = WinPopup.Hide(FadeDuration);
-                    //await UniTask.WhenAll(t1, t2);
+                        WinPopup.Hide(Configuration.UIFadeDuration);
                     break;
 
                 case UIState.Gameplay:
                     GameplayUI.SetActive(true);
-
-                    //if (State == UIState.SetupRequest)
-                        await StartPopup.Hide(FadeDuration);
-                    //else
-                    //    await WinPopup.Hide(FadeDuration);
+                    await StartPopup.Hide(Configuration.UIFadeDuration);
                     break;
 
                 case UIState.Win:
-                    await WinPopup.Show(FadeDuration);
+                    await WinPopup.Show(Configuration.UIFadeDuration);
                     GameplayUI.SetActive(false);
 
                     await WinPopup.WaitForConfirmation();
-                    //await WinPopup.Hide(FadeDuration);
                     break;
 
                 default:

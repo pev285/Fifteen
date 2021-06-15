@@ -113,7 +113,7 @@ namespace pe9.Fifteen.Core
             var cameraSize = Screen.height * halfWidth / Screen.width;
             Camera.orthographicSize = cameraSize;
 
-            //-- TODO: support different board height, if it's needed ---
+            //-- TODO: support very high boards ??? ---
         }
     }
 }
