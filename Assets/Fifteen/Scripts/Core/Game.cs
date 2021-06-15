@@ -48,8 +48,6 @@ namespace pe9.Fifteen.Core
 
         private void OnApplicationFocus(bool focus)
         {
-            Debug.Log($"application focus = {focus}");
-
             if (focus == false && State == GameState.Gameplay)
                 SaveGame();
         }

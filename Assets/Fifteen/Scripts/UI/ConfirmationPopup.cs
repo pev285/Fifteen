@@ -6,15 +6,16 @@ using UnityEngine.UI;
 
 namespace pe9.Fifteen.UI
 {
-    public class ConfirmationPopup : MonoBehaviour
+    public class ConfirmationPopup : BasePopup
     {
         [SerializeField]
         private Button ConfirmButton;
 
         private bool HaveConfirmation;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             ConfirmButton.onClick.AddListener(Confirm);
         }
 

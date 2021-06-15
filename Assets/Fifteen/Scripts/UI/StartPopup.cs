@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace pe9.Fifteen.UI
 {
-    public class StartPopup : MonoBehaviour
+    public class StartPopup : BasePopup
     {
         [SerializeField]
         private Button StartButton;
@@ -20,8 +20,9 @@ namespace pe9.Fifteen.UI
         private bool Submitted;
         private GameSetup GameSetup;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             StartButton.onClick.AddListener(CheckSuccess);
         }
 

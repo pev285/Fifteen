@@ -23,9 +23,6 @@ namespace pe9.Fifteen.UI
         private const float FadeDuration = 1.0f;
 
         [SerializeField]
-        private CanvasGroup Background;
-
-        [SerializeField]
         private StartPopup StartPopup;
 
         [SerializeField]
@@ -61,9 +58,8 @@ namespace pe9.Fifteen.UI
         }
         private void HideAll()
         {
-            Background.alpha = 0;
-            WinPopup.gameObject.SetActive(false);
-            StartPopup.gameObject.SetActive(false);
+            WinPopup.HideImmediate();
+            StartPopup.HideImmediate();
             GameplayUI.SetActive(false);
         }
 
@@ -72,54 +68,39 @@ namespace pe9.Fifteen.UI
             switch (state)
             {
                 case UIState.SetupRequest:
-                    await ShowPopup(StartPopup.gameObject);
+                    await StartPopup.Show(FadeDuration);
+
+                    if (State == UIState.Win)
+                        WinPopup.Hide(FadeDuration);
+
+
+                    //var t1 = StartPopup.Show(FadeDuration);
+                    //var t2 = WinPopup.Hide(FadeDuration);
+                    //await UniTask.WhenAll(t1, t2);
                     break;
+
                 case UIState.Gameplay:
-                    await HidePopup(StartPopup.gameObject);
+                    GameplayUI.SetActive(true);
+
+                    //if (State == UIState.SetupRequest)
+                        await StartPopup.Hide(FadeDuration);
+                    //else
+                    //    await WinPopup.Hide(FadeDuration);
                     break;
+
                 case UIState.Win:
-                    await ShowPopup(WinPopup.gameObject);
+                    await WinPopup.Show(FadeDuration);
+                    GameplayUI.SetActive(false);
 
                     await WinPopup.WaitForConfirmation();
-                    await HidePopup(WinPopup.gameObject);
+                    //await WinPopup.Hide(FadeDuration);
                     break;
+
                 default:
                     throw new ArgumentException($"Unable to perform transition to state {state}");
             }
-        }
 
-
-        private async UniTask<GameSetup> GetGameSetup()
-        {
-            var setup = await StartPopup.WaitForStartSubmit();
-            return setup;
-        }
-
-        private async UniTask HideStartGamePopup()
-        {
-
-        }
-
-        private async UniTask ShowStartGamePopup()
-        {
-            
-        }
-
-        private async UniTask ShowWinPopup()
-        {
-
-        }
-
-        private async UniTask ShowPopup(GameObject popup)
-        {
-            popup.gameObject.SetActive(true);
-            await TaskHelpers.WaitFor(Background.DOFade(1, FadeDuration));
-        }
-
-        private async UniTask HidePopup(GameObject popup)
-        {
-            await TaskHelpers.WaitFor(Background.DOFade(0, FadeDuration));
-            popup.gameObject.SetActive(false);
+            State = state;
         }
     }
 }
