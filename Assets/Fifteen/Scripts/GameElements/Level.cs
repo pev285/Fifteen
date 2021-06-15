@@ -24,7 +24,7 @@ namespace pe9.Fifteen.GameElements
             GameSetup = setup;
 
             Board.Lock();
-            Board.CreateNew(setup.BoardWidth, setup.BoardHeight);
+            Board.CreateNew(setup.BoardWidth, setup.BoardHeight, setup.ShuffleSteps);
         }
 
         public void RestoreLevel(GameSetup setup, int[] data)

@@ -9,10 +9,14 @@ namespace pe9.Fifteen.Common
         public int BoardWidth { get; }
         public int BoardHeight { get; }
 
-        public GameSetup(int boardWidth, int boardHeight)
+        public int ShuffleSteps { get; }
+
+        public GameSetup(int boardWidth, int boardHeight, int shuffleSteps)
         {
             BoardWidth = boardWidth;
             BoardHeight = boardHeight;
+
+            ShuffleSteps = shuffleSteps;
         }
     }
 }

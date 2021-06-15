@@ -11,6 +11,8 @@ namespace pe9.Fifteen.UI
 {
     public class StartPopup : BasePopup
     {
+        private const char Separator = 'x';
+
         [SerializeField]
         private Button StartButton;
 
@@ -23,23 +25,25 @@ namespace pe9.Fifteen.UI
         protected override void Awake()
         {
             base.Awake();
+
+            var options = SizeChooser.options;
+            options.Clear();
+
+            foreach (var preset in Configuration.SetupPresets)
+            {
+                var option = new TMP_Dropdown.OptionData($"{preset[0]} {Separator} {preset[1]}");
+                options.Add(option);
+            }
+
             StartButton.onClick.AddListener(CheckSuccess);
         }
 
         private void CheckSuccess()
         {
             var index = SizeChooser.value;
-            var option = SizeChooser.options[index].text;
+            var preset = Configuration.SetupPresets[index];
 
-            var substrs = option.Split(new char[] { 'x' });
-
-            string wstring = substrs[0].Trim();
-            string hstring = substrs[1].Trim();
-
-            int width = int.Parse(wstring);
-            int height = int.Parse(hstring);
-
-            GameSetup = new GameSetup(width, height);
+            GameSetup = new GameSetup(preset[0], preset[1], preset[2]);
             Submitted = true;
         }
 

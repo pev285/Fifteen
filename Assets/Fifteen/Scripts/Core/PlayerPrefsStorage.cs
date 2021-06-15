@@ -39,7 +39,7 @@ namespace pe9.Fifteen.Core
                 return false;
             }
 
-            setup = new GameSetup(width, height);
+            setup = new GameSetup(width, height, 0);
             return true;
         }
 

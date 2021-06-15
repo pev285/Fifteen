@@ -4,13 +4,21 @@ using UnityEngine;
 
 namespace pe9.Fifteen.Common
 {
-    public static class Configuration 
+    public static class Configuration
     {
         public static float UIFadeDuration { get => 1.0f; }
 
-        public static int BoardShuffleSteps { get => 3; }
-
         public static float PieceMoveDuration { get => 0.25f; }
-        public static float ShuffleMoveDuration { get => 0.15f; }
+        public static float ShuffleMoveDuration { get => 0.1f; }
+
+        public static int[][] SetupPresets { get => _setupPresets; }
+
+        private static int[][] _setupPresets = {
+            new int[] { 3, 3, 1 },
+            new int[] { 4, 4, 2 },
+            new int[] { 5, 5, 3 },
+            new int[] { 3, 5, 3 },
+            new int[] { 5, 4, 3 },
+        };
     }
 }
