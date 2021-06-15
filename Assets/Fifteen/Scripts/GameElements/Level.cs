@@ -29,28 +29,22 @@ namespace pe9.Fifteen.GameElements
         public void SetupLevel(GameSetup setup)
         {
             GameSetup = setup;
-
-            Board.Lock();
-            Board.CreateNew(setup.BoardWidth, setup.BoardHeight, setup.ShuffleSteps);
+            Board.CreateNew(setup.BoardWidth, setup.BoardHeight);
         }
 
         public void RestoreLevel(GameSetup setup, int[] data)
         {
             GameSetup = setup;
-
-            Board.Lock();
             Board.Restore(setup.BoardWidth, setup.BoardHeight, data);
         }
 
         public async UniTask ShuffleBoard()
         {
-            await Board.Shuffle();
+            await Board.Shuffle(GameSetup.ShuffleSteps);
         }
 
         public async UniTask StartPlaying()
         {
-            Board.Unlock();
-
             State = LevelState.Playing;
             await UniTask.WaitWhile(() => State == LevelState.Playing);
         }
@@ -65,7 +59,6 @@ namespace pe9.Fifteen.GameElements
             if (Board.IsCorrectArrangement() == false)
                 return;
 
-            Board.Lock();
             State = LevelState.Completed;
         }
     }

@@ -24,8 +24,6 @@ namespace pe9.Fifteen.GameElements
 
         private int Width;
         private int Height;
-        private int ShuffleSteps;
-
 
         private void Awake()
         {
@@ -47,10 +45,8 @@ namespace pe9.Fifteen.GameElements
             PieceFactory = pieceFactory;
         }
 
-        public void CreateNew(int width, int height, int shuffleSteps)
+        public void CreateNew(int width, int height)
         {
-            ShuffleSteps = shuffleSteps;
-
             CreateDefaultBoard(width, height);
             SetCorrectArrangement();
         }
@@ -109,13 +105,16 @@ namespace pe9.Fifteen.GameElements
                 }
         }
 
-        public async UniTask Shuffle()
+        public async UniTask Shuffle(int shuffleSteps)
         {
+            if (shuffleSteps <= 0)
+                return;
+
             int counter = 0;
             var emptyPosition = FindEmptyPosition();
             var previousEmptyPosition = emptyPosition;
 
-            while (counter < ShuffleSteps)
+            while (counter < shuffleSteps)
             {
                 int dirIndex = UnityEngine.Random.Range(0, Directions.Length);
                 var direction = Directions[dirIndex];

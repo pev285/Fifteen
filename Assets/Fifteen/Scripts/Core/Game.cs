@@ -65,9 +65,12 @@ namespace pe9.Fifteen.Core
         {
             while (State != GameState.Exit)
             {
+                Level.Board.Lock();
                 await SetupNewSession();
 
+                Level.Board.Unlock();
                 State = GameState.Gameplay;
+
                 await Level.StartPlaying();
 
                 Storage.ClearSavedData();
